@@ -1,3 +1,10 @@
+<?php
+require_once __DIR__ . '/db.php';
+$db    = get_db();
+$res   = $db->query('SELECT id, name FROM rooms ORDER BY id');
+$rooms = [];
+while ($row = $res->fetchArray(SQLITE3_ASSOC)) { $rooms[] = $row; }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -212,6 +219,9 @@
 <script>
 const WS_URL = 'ws://localhost:8081';
 
+
+const ROOMS = <?= json_encode($rooms) ?>;
+
 const state = {
   username: '',
   rooms:    [],
@@ -224,11 +234,10 @@ const PALETTE = ['#00e5a0','#0099ff','#ff6b6b','#ffd93d','#c77dff','#ff9f43','#5
 const userColour = n => PALETTE[n.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % PALETTE.length];
 
 // ── Boot ──────────────────────────────────────────────────────
-(async () => {
-  const rooms = await fetch('api.php?action=rooms').then(r => r.json());
-  state.rooms = rooms;
+(() => {
+  state.rooms = ROOMS;
   const sel = document.getElementById('room-select');
-  sel.innerHTML = rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  sel.innerHTML = ROOMS.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
 
   const saved = sessionStorage.getItem('chat_user');
   if (saved) {
